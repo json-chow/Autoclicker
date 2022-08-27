@@ -197,6 +197,7 @@ class MainWindow(qtw.QWidget):
         self.click_mode = "Press"
         self.clicking = False
         self.button_to_click = Button.left
+        self.pressed_held = False
 
         # Signal/Slot Connections Stuff
         self.cps_input.textChanged.connect(self.change_cps)
@@ -290,18 +291,27 @@ class MainWindow(qtw.QWidget):
     def start_clicking(self, pressed, button):
         if self.cps and self.click_mode and self.button_to_click and button == self.trigger_key:
             if button and pressed:
-                self.click_thread = qtc.QThread()
-                if str(self.button_to_click).count("Button"):
-                    self.clicker = MouseClicker(self.button_to_click, self.delay, self.click_variation_time)
-                else:
-                    self.clicker = KeyboardClicker(self.button_to_click, self.delay, self.click_variation_time)
-                self.clicker.moveToThread(self.click_thread)
-                self.click_thread.started.connect(self.clicker.run)
-                self.click_thread.start()
-                self.status.setText("Status: Clicking")
+                if not self.pressed_held:
+                    self.pressed_held = True
+                    try:
+                        if self.click_thread.isFinished():
+                            self.click_thread = qtc.QThread()
+                        else:
+                            return -1
+                    except AttributeError:
+                        self.click_thread = qtc.QThread()
+                    if str(self.button_to_click).count("Button"):
+                        self.clicker = MouseClicker(self.button_to_click, self.delay, self.click_variation_time)
+                    else:
+                        self.clicker = KeyboardClicker(self.button_to_click, self.delay, self.click_variation_time)
+                    self.clicker.moveToThread(self.click_thread)
+                    self.click_thread.started.connect(self.clicker.run)
+                    self.click_thread.start()
+                    self.status.setText("Status: Clicking")
             else:
                 self.clicker.stop()
                 self.click_thread.exit()
+                self.pressed_held = False
                 self.status.setText("Status: Idle")
 
     @qtc.Slot(bool, str)
@@ -309,7 +319,13 @@ class MainWindow(qtw.QWidget):
         if self.cps and self.click_mode and self.button_to_click and button == self.trigger_key:
             if button and not(pressed):
                 if not(self.clicking):
-                    self.click_thread = qtc.QThread()
+                    try:
+                        if self.click_thread.isFinished():
+                            self.click_thread = qtc.QThread()
+                        else:
+                            return -1
+                    except AttributeError:
+                        self.click_thread = qtc.QThread()
                     if str(self.button_to_click).count("Button"):
                         self.clicker = MouseClicker(self.button_to_click, self.delay, self.click_variation_time)
                     else:
