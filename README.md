@@ -11,4 +11,4 @@ An autoclicker, but with optional random click delay
 - **Press/Toggle**: Changes whether the autoclicker activates while the trigger is held down (press) or if the trigger is tapped (toggle)
 - **Button to Click**: Changes what key is being clicked/pressed when the autoclicker is activated
 
-
+Inspired by xytor's "Fast Mouse Clicker": https://sourceforge.net/projects/fastclicker/
